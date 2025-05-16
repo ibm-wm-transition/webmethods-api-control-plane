@@ -27,6 +27,7 @@ services:
     - ibm-webmethods-api-management
     volumes:
       - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
+      - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
 
   ingress-debug:
     <<: *ingress-service
@@ -36,6 +37,7 @@ services:
     - ../elasticsearch/es-config.env
     volumes:
     - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
+    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
 
   ingress-gainsight:
     <<: *ingress-service
@@ -45,9 +47,11 @@ services:
     - ../elasticsearch/es-config.env
     volumes:
     - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
-
+    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
+    
   ingress-secure-es:
     <<: *ingress-service
     volumes:
     - es-certs:/usr/share/elasticsearch/config/certs
     - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
+    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}

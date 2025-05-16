@@ -7,10 +7,10 @@ data:
 {{ if eq .Values.applications.ingress.sslEnabled true }}
   SERVER_SSL_ENABLED: "true"
   SERVER_PORT: "8443"
-  SERVER_SSL_KEY_ALIAS: "softwareag"
-  SERVER_SSL_KEY_PASSWORD: "softwareagkeys"
-  SERVER_SSL_KEY_STORE: "file:/opt/softwareag/certs/softwareag_not_for_production.jks"
-  SERVER_SSL_KEY_STORE_PASSWORD: "softwareag"
+  SERVER_SSL_KEY_ALIAS: "controlplane"
+  SERVER_SSL_KEY_PASSWORD: ""
+  SERVER_SSL_KEY_STORE: "file:/opt/softwareag/certs/webmethods_not_for_production.jks"
+  SERVER_SSL_KEY_STORE_PASSWORD: "webmethods"
   SERVER_SSL_KEY_STORE_TYPE: "JKS"
   {{ else }}
   SERVER_SSL_ENABLED: "false"
