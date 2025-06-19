@@ -6,7 +6,6 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.applications.ingress.name }}-config
 data:
-{{ (.Files.Glob "license/*").AsConfig | indent 2 }}
   SERVER_SSL_ENABLED: "true"
   SERVER_SSL_KEY_ALIAS: "webmethods"
   SERVER_SSL_KEY_PASSWORD: "webmethods"
@@ -52,4 +51,15 @@ data:
   com.softwareag.api.umc.oauth.user.endpoint: ""
 
   JAVA_OPTS: "-Xms256m -Xmx256m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/ingress_heap_dump.hprof -Dcom.softwareag.api.umc.config.file=umc-defaults-controlplane.properties"
+
+  OTEL_JAVAAGENT_ENABLED: "{{ .Values.applications.jaegertracing.enabled }}"
+  {{- if .Values.applications.jaegertracing.enabled }}
+  JAVA_OPTS: "-Dotel.exporter.otlp.endpoint=http://{{ .Values.applications.jaegertracing.name }}-svc:{{ .Values.applications.jaegertracing.port }} -Dotel.resource.attributes=service.name={{ .Values.applications.ingress.name }}"
+  LOGGING_LEVEL_COM_SOFTWAREAG_CONTROLPLANE: "{{ .Values.applications.ingress.logLevel }}"
+  OTEL_METRICS_EXPORTER: "none"
+  {{- end }}
+  {{- if .Values.applications.gainsight.enabled }}
+  APICP_INGRESS_SECURITYCONFIG_HEADERS_CONTENT_SECURITY_POLICY : "default-src 'self'; img-src * 'self' data: *.aptrinsic.com storage.googleapis.com; object-src 'none'; script-src 'self' *.aptrinsic.com; style-src 'self' 'unsafe-inline' *.aptrinsic.com 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; connect-src 'self' *.aptrinsic.com"
+  {{- end }}
+
 ---
