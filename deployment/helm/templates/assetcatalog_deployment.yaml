@@ -1,3 +1,6 @@
+#
+# Copyright IBM Corp. 2024, 2025
+#
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,9 +24,17 @@ spec:
         date: "{{ now | unixEpoch }}"
     spec:
       automountServiceAccountToken: false
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ .Values.secrets.certs.name }}
       containers:
       - image: {{ .Values.applications.assetcatalog.imageName }}:{{ .Values.applications.assetcatalog.imageTag }}
         name: {{ .Values.applications.assetcatalog.name }}
+        volumeMounts:
+        - name: certs
+          mountPath: {{ .Values.secrets.certs.mountPath }}
+          readOnly: true
         envFrom:
         - configMapRef:
             name: {{ .Values.applications.assetcatalog.name }}-config
@@ -39,29 +50,31 @@ spec:
             cpu: {{ .Values.applications.assetcatalog.resources.requests.cpu }}
             memory: {{ .Values.applications.assetcatalog.resources.requests.memory }}
         ports:
-          - containerPort: 8080
+          - containerPort: 8443
             name: http
         readinessProbe:
-          httpGet:
-            path: /api/assetcatalog/health/readiness
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 60
+          exec:
+            command:
+              - sh
+              - -c
+              - "curl -fk -s --cert /certs/ac-cert.pem --key /certs/ac-key.pem  https://localhost:8443/api/assetcatalog/health/readiness || exit 1"
+          initialDelaySeconds: 100
           periodSeconds: 20
           successThreshold: 1
           failureThreshold: 3
-          timeoutSeconds: 5
+          timeoutSeconds: 15
         livenessProbe:
-          httpGet:
-            path: /api/assetcatalog/health/liveness
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 60
+          exec:
+            command:
+              - sh
+              - -c
+              - "curl -fk -s --cert /certs/ac-cert.pem --key /certs/ac-key.pem  https://localhost:8443/api/assetcatalog/health/liveness || exit 1"
+          initialDelaySeconds: 100
           periodSeconds: 20
           successThreshold: 1
           failureThreshold: 3
-          timeoutSeconds: 5
+          timeoutSeconds: 15
       terminationGracePeriodSeconds: 30
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecretName }}
+          - name: regcred
 ---

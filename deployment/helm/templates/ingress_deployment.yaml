@@ -1,3 +1,6 @@
+#
+# Copyright IBM Corp. 2024, 2025
+#
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,12 +28,18 @@ spec:
       - name: license-file
         configMap:
           name: {{ .Values.applications.ingress.name }}-config
+      - name: certs
+        secret:
+          secretName: {{ .Values.secrets.certs.name }}
       containers:
       - image: {{ .Values.applications.ingress.imageName }}:{{ .Values.applications.ingress.imageTag }}
         name: {{ .Values.applications.ingress.name }}
         volumeMounts:
         - name: license-file
-          mountPath: /home/license
+          mountPath: /home
+        - name: certs
+          mountPath: /certs
+          readOnly: true
         envFrom:
         - configMapRef:
             name: {{ .Values.applications.ingress.name }}-config
@@ -45,50 +54,34 @@ spec:
           requests:
             cpu: {{ .Values.applications.ingress.resources.requests.cpu }}
             memory: {{ .Values.applications.ingress.resources.requests.memory }}
-#  should be enabled if the certificate from host system is being mounted
-#        volumeMounts:
-#          - name: hostpath-volume
-#            mountPath: /opt/softwareag/certs/webmethods_not_for_production.jks
         ports:
-          - containerPort: 8080
+          - containerPort: 8443
             name: http
+          - containerPort: 8080
+            name: internal
         readinessProbe:
-          httpGet:
-            path: /api/ingress/health/readiness
-            {{ if eq .Values.applications.ingress.sslEnabled true }}
-            port: 8443
-            scheme: HTTPS
-            {{ else }}
-            port: 8080
-            scheme: HTTP
-            {{ end }}
+          exec:
+            command:
+              - sh
+              - -c
+              - "curl -fk -s --cert /certs/in-cert.pem --key /certs/in-key.pem  https://localhost:8443/api/ingress/health/readiness || exit 1"
           initialDelaySeconds: 100
           periodSeconds: 20
           successThreshold: 1
           failureThreshold: 3
-          timeoutSeconds: 5
+          timeoutSeconds: 15
         livenessProbe:
-          httpGet:
-            path: /api/ingress/health/liveness
-            {{ if eq .Values.applications.ingress.sslEnabled true }}
-            port: 8443
-            scheme: HTTPS
-            {{ else }}
-            port: 8080
-            scheme: HTTP
-            {{ end }}
+          exec:
+            command:
+              - sh
+              - -c
+              - "curl -fk -s --cert /certs/in-cert.pem --key /certs/in-key.pem  https://localhost:8443/api/ingress/health/liveness || exit 1"
           initialDelaySeconds: 100
           periodSeconds: 20
           successThreshold: 1
           failureThreshold: 3
-          timeoutSeconds: 5
-#      should be enabled if the certificate from host system is being mounted
-#      volumes:
-#        - name: hostpath-volume
-#          hostPath:
-#            path: /mnt/path/in/your/host/webmethods_not_for_production.jks
-#            type: File
+          timeoutSeconds: 15
       terminationGracePeriodSeconds: 30
       imagePullSecrets:
-        - name: {{ .Values.imagePullSecretName }}
+          - name: regcred
 ---

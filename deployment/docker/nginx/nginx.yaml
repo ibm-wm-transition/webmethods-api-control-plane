@@ -7,18 +7,19 @@ services:
       restart_policy:
         condition: "on-failure"
     ports:
-      - "${NGINX_HTTP_PORT}:80"
+      - "80:80"
       - "${NGINX_HTTPS_PORT}:443"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://nginx:80"]
+      test: ["CMD", "curl", "-fk", "https://nginx:443"]
       interval: 30s
       timeout: 10s
       retries: 5
     volumes:
       - conf.d:/etc/nginx/conf.d
       - nginx-certs:/etc/nginx/certs
+      - ../../certs:/usr/share/certs
     networks:
-      - ibm-webmethods-api-management
+      - ibm-wm-api-cp-nw
 
 
   nginx_setup:
@@ -40,7 +41,7 @@ services:
                  proxy_pass https://ingress:8443;
                  proxy_set_header X-Forwarded-Proto http;
                  proxy_set_header Host ${NGINX_DOMAIN_NAME};
-                 proxy_set_header X-Forwarded-Port ${NGINX_HTTP_PORT};
+                 proxy_set_header X-Forwarded-Port "80";
              }
          }
          server {
@@ -49,21 +50,24 @@ services:
              ssl_session_timeout 5m;
              ssl_session_cache shared:SSL:50m;
              ssl_session_tickets off;
-             ssl_certificate /etc/nginx/certs/${NGINX_DOMAIN_NAME}.crt;
-             ssl_certificate_key /etc/nginx/certs/${NGINX_DOMAIN_NAME}.key;
+             ssl_certificate /usr/share/certs/nginx-cert.crt;
+             ssl_certificate_key /usr/share/certs/nginx-key.key;
+      
              location / {
                  proxy_pass https://ingress:8443;
                  proxy_set_header X-Forwarded-Proto https;
                  proxy_set_header Host ${NGINX_DOMAIN_NAME};
                  proxy_set_header X-Forwarded-Port ${NGINX_HTTPS_PORT};
+      
+              #  Configure Nginx as a client using self-signed certs
+                 proxy_ssl_certificate /usr/share/certs/nginx-cert.crt;
+                 proxy_ssl_certificate_key /usr/share/certs/nginx-key.key;
+      
+                 #proxy_ssl_trusted_certificate /usr/share/certs/in-cert.pem;
+                 proxy_ssl_verify off;
              }
          }
       " > /usr/share/conf.d/default.conf
       '
-    healthcheck:
-      test: ["CMD-SHELL"]
-      interval: 1s
-      timeout: 5s
-      retries: 120
     networks:
-      - ibm-webmethods-api-management
+      - ibm-wm-api-cp-nw
