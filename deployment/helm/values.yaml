@@ -149,6 +149,12 @@ applications:
       plan: "Free"
       stage: "Staging"
       key: "AP-BCBBKBNAYWW6-2-2"
+
+secrets:
+  certs:
+    name: certs-secret
+    mountPath: /certs
+
 domainName: my-control-plane
 imagePullSecretName: regcred
 # -- Optionally configure a ingress class to use for the kubernetes ingress (default: nginx)
