@@ -14,29 +14,32 @@ services:
       restart_policy:
         condition: "no"
     env_file:
-    - ui-config.env
+      - ui-config.env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://ui:8080/controlplane/api/ui/health"]
+      test: ["CMD", "curl", "-fk", "--cert", "/certs/ui-cert.pem", "--key", "/certs/ui-key.pem", "https://ui:8443/controlplane/api/ui/health"]
       interval: 30s
       timeout: 10s
       retries: 5
+    volumes:
+      - ../../certs/keystore-ui.jks:/certs/keystore.jks
+      - ../../certs/truststore-ui.jks:/certs/truststore.jks
+      - ../../certs/ui-cert.pem:/certs/ui-cert.pem
+      - ../../certs/ui-key.pem:/certs/ui-key.pem
     networks:
-    - ibm-webmethods-api-management
-  ui-debug:
+    - ibm-wm-api-cp-nw
+
+  ui-otel:
     <<: *ui-service
     env_file:
-    - ui-config.env
-    - ui-config.debug.env
+      - ui-config.env
+      - ui-config.otel.env
     ports:
-    - ${UI_PUBLISH_PORT}:8080
+      - ${UI_PUBLISH_PORT}:8443
+
   ui-gainsight:
     <<: *ui-service
     env_file:
     - ui-config.env
     - ui-config.gainsight.env
     ports:
-    - ${UI_PUBLISH_PORT}:8080
-  ui-secure-es:
-    <<: *ui-service
-    volumes:
-    - es-certs:/usr/share/elasticsearch/config/certs
+    - ${UI_PUBLISH_PORT}:8443

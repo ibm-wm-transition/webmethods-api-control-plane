@@ -14,44 +14,36 @@ services:
       restart_policy:
         condition: "no"
     env_file:
-    - ingress-config.env
-    - ../elasticsearch/es-config.env
-    ports:
-      - ${INGRESS_PUBLISH_PORT}:8443
+      - ingress-config.env
+      - ../datastore/datastore-config.env
     healthcheck:
-      test: ["CMD", "curl", "-fk", "https://ingress:8443/api/ingress/health"]
+      test: ["CMD", "curl", "-fk", "--cert", "/certs/in-cert.pem", "--key", "/certs/in-key.pem", "https://ingress:8443/api/ingress/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-    networks:
-    - ibm-webmethods-api-management
     volumes:
-      - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
-      - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
+      - ./PasswordResetRequestTemplate.html:/template/PasswordResetRequestTemplate.html:ro
+      - ./password_changed.html:/template/password_changed.html
+      - ../../certs/jwt_keystore.jks:/certs/jwt_keystore.jks
+      - ../../certs/keystore-in.jks:/certs/keystore.jks
+      - ../../certs/truststore-in.jks:/certs/truststore.jks
+      - ../../certs/in-cert.pem:/certs/in-cert.pem
+      - ../../certs/in-key.pem:/certs/in-key.pem
+    networks:
+      - ibm-wm-api-cp-nw
 
-  ingress-debug:
+  ingress-otel:
     <<: *ingress-service
     env_file:
-    - ingress-config.env
-    - ingress-config.debug.env
-    - ../elasticsearch/es-config.env
-    volumes:
-    - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
-    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
+      - ingress-config.env
+      - ingress-config.otel.env
+      - ../datastore/datastore-config.env
+    ports:
+      - ${INGRESS_PUBLISH_PORT}:8443
 
   ingress-gainsight:
     <<: *ingress-service
     env_file:
     - ingress-config.env
     - ingress-config.gainsight.env
-    - ../elasticsearch/es-config.env
-    volumes:
-    - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
-    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
-    
-  ingress-secure-es:
-    <<: *ingress-service
-    volumes:
-    - es-certs:/usr/share/elasticsearch/config/certs
-    - ../../license/${LICENSE_FILE_NAME}:/home/license/${LICENSE_FILE_NAME}
-    - ../../certs/${CERTIFICATE_FILENAME}:/opt/softwareag/certs/${CERTIFICATE_FILENAME}
+    - ../datastore/datastore-config.env
