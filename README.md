@@ -1,5 +1,22 @@
 # IBM webMethods API Control Plane
 
+> ⚠️ **Repository Archived**  
+>
+> This repository is being archived and is no longer actively maintained.
+> The content previously hosted in this repository has now been **reorganized and relocated to more appropriate or updated locations**.
+> We have also updated most of our official documentation to reference the new sources.
+> As a result, this repository is no longer the primary reference point and will be archived for clarity and to avoid confusion.
+>
+> - No further updates, bug fixes, or pull requests will be accepted.  
+> - The repository remains accessible in read-only mode for historical reference.  
+>
+> If you're looking for current versions of this content or its new locations, please refer to the product documentation:
+> - [On-premise/Software documentation](https://www.ibm.com/docs/en/wm-api-control-plane/11.1.0)
+> - [SaaS documentation](https://www.ibm.com/docs/en/wm-api-control-plane-saas/11.1.0)
+>
+> Thank you to everyone who used, contributed to, or supported this project!
+>
+
 APIs are everywhere. API Management is where APIs are. It’s all distributed and heterogeneous. Management and administration becomes harder. API Management technology should blend in into the rest of the infrastructure and be managed from one place. API Control Plane is a single solution for understanding, managing and controlling the entire API Management landscape, whether it's self-hosted, in private clouds, in a public cloud, or a hybrid combination of any of these. Assets in the API Control Plane are organized across:
 
 - APIs - whereever they are deployed, however many versions they have
